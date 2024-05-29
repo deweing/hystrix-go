@@ -30,11 +30,16 @@ type Settings struct {
 
 // CommandConfig is used to tune circuit settings at runtime
 type CommandConfig struct {
-	Timeout                int `json:"timeout"`
-	MaxConcurrentRequests  int `json:"max_concurrent_requests"`
+	// 等待command完成的时间，单位毫秒，默认1000
+	Timeout int `json:"timeout"`
+	// 同一个command支持的的并发量，默认10
+	MaxConcurrentRequests int `json:"max_concurrent_requests"`
+	// 触发开启熔断的最小请求数，默认20
 	RequestVolumeThreshold int `json:"request_volume_threshold"`
-	SleepWindow            int `json:"sleep_window"`
-	ErrorPercentThreshold  int `json:"error_percent_threshold"`
+	// 熔断开启后，多长时间后开始检测是否恢复，单位毫秒，默认5000
+	SleepWindow int `json:"sleep_window"`
+	// 触发熔断的错误百分比，当失败比率超过该值时，开启熔断， 默认50(%)
+	ErrorPercentThreshold int `json:"error_percent_threshold"`
 }
 
 var circuitSettings map[string]*Settings
@@ -48,6 +53,7 @@ func init() {
 }
 
 // Configure applies settings for a set of circuits
+// 添加批量配置
 func Configure(cmds map[string]CommandConfig) {
 	for k, v := range cmds {
 		ConfigureCommand(k, v)
@@ -55,6 +61,7 @@ func Configure(cmds map[string]CommandConfig) {
 }
 
 // ConfigureCommand applies settings for a circuit
+// 添加单个配置
 func ConfigureCommand(name string, config CommandConfig) {
 	settingsMutex.Lock()
 	defer settingsMutex.Unlock()
